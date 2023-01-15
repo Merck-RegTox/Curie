@@ -4,4 +4,5 @@ import merck.regtox.curie.dto.Model;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ModelRepository extends JpaRepository<Model, Long> {
+    Boolean existsByNameAndEndpointIdAndSoftwareId(String name, Long endpointId, Long softwareId);
 }

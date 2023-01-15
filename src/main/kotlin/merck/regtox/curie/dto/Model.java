@@ -13,9 +13,44 @@ public class Model {
     private String name;
     @JoinColumn(name="eid", nullable = false)
     @ManyToOne(targetEntity = Endpoint.class, cascade = CascadeType.ALL)
-    private Long endpoint_id;
+    private Endpoint endpoint;
 
     @JoinColumn(name="sid", nullable = false)
     @ManyToOne(targetEntity = Software.class, cascade = CascadeType.ALL)
-    private Long software_id;
+    private Software software;
+
+    public Model() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Endpoint getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(Endpoint endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public Software getSoftware() {
+        return software;
+    }
+
+    public void setSoftware(Software software) {
+        this.software = software;
+    }
 }
