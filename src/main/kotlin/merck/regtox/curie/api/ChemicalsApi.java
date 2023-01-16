@@ -3,14 +3,13 @@ package merck.regtox.curie.api;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.websocket.server.PathParam;
-import merck.regtox.curie.dto.Endpoint;
-import merck.regtox.curie.dto.Model;
-import merck.regtox.curie.dto.Software;
-import merck.regtox.curie.dto.repository.EndpointRepository;
-import merck.regtox.curie.dto.repository.ModelRepository;
-import merck.regtox.curie.dto.repository.SoftwareRepository;
-import merck.regtox.curie.dto.request.ModelRequest;
+import merck.regtox.curie.buissnesLogic.ChemicalCreator;
+import merck.regtox.curie.dto.*;
+import merck.regtox.curie.dto.repository.*;
+import merck.regtox.curie.dto.request.ChemicalRequestTemplate;
+import merck.regtox.curie.dto.request.ModelRequestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,26 +25,50 @@ public class ChemicalsApi {
     ModelRepository modelRepository;
     @Autowired
     EndpointRepository endpointRepository;
+    @Autowired
+    ChemicalCreator chemicalCreator;
+    @Autowired
+    ChemicalRepository chemicalRepository;
+    @Autowired
+    LogicRuleRepository logicRuleRepository;
 
     @GetMapping("/software")
-    public List<Software> getAllSoftware(){
-        return softwareRepository.findAll();
+    public List<Software> getAllSoftware(@RequestParam(value="0") int page,
+                                         @RequestParam(value="50") int size){
+        return softwareRepository.findAll(PageRequest.of(page, size)).toList();
     }
 
     @GetMapping("/software/{id}")
     public Software getSoftwareById(@PathParam("id") Long id){
         return softwareRepository.findById(id)
-                                 .orElseThrow(() -> new EntityNotFoundException("Software with id: "+id+" doesnt exist"));
+                .orElseThrow(() -> new EntityNotFoundException("Software with id: "+id+" doesnt exist"));
     }
 
     @GetMapping("/model")
-    public List<Model> getAllModels(){
-        return modelRepository.findAll();
+    public List<Model> getAllModels(@RequestParam(value="0") int page,
+                                    @RequestParam(value="50") int size,
+                                    @RequestParam(required = false) Long endpointId,
+                                    @RequestParam(required = false) Long softwareId){
+        return modelRepository.findAll(PageRequest.of(page, size)).toList();
     }
 
+    @GetMapping("/model/{id}")
+    public Model getModelById(@PathParam("id") Long id){
+        return modelRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Model with id: "+id+" doesnt exist"));
+    }
+
+
     @GetMapping("/endpoint")
-    public List<Endpoint> getAllEndpoints(){
-        return endpointRepository.findAll();
+    public List<Endpoint> getAllEndpoints(@RequestParam(value="0") int page,
+                                          @RequestParam(value="50") int size){
+        return endpointRepository.findAll(PageRequest.of(page, size)).toList();
+    }
+
+    @GetMapping("/endpoint/{id}")
+    public Endpoint getAllEndpoints(@PathParam("id") Long id){
+        return endpointRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Endpoint with id: "+id+" doesnt exist"));
     }
 
     @PostMapping(path="/software/add", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
@@ -75,7 +98,7 @@ public class ChemicalsApi {
     }
 
     @PostMapping(path="/model/add", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
-    public void createNewModel(@RequestBody ModelRequest model) {
+    public void createNewModel(@RequestBody ModelRequestTemplate model) {
         model.setName(model
                 .getName()
                 .trim()
@@ -102,5 +125,54 @@ public class ChemicalsApi {
         modelRepository.save(dbModel);
     }
 
+    @GetMapping("/software/remove/{id}")
+    public void deleteSoftware(@PathParam("id") Long id) {
+        if(softwareRepository.existsById(id)) {
+            softwareRepository.deleteById(id);
+        }else {
+            throw new EntityNotFoundException("Entity with id: "+id+" does not exist.");
+        }
+    }
+
+    @GetMapping("/endpoint/remove/{id}")
+    public void deleteEndpoint(@PathParam("id") Long id) {
+        if(endpointRepository.existsById(id)) {
+            endpointRepository.deleteById(id);
+        }else {
+            throw new EntityNotFoundException("Entity with id: "+id+" does not exist.");
+        }
+    }
+
+    @GetMapping("/model/remove/{id}")
+    public void deleteModel(@PathParam("id") Long id) {
+        if(modelRepository.existsById(id)) {
+            modelRepository.deleteById(id);
+        }else {
+            throw new EntityNotFoundException("Entity with id: "+id+" does not exist.");
+        }
+    }
+
+    @PostMapping(path="/chemical/add", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
+    public void addNewChemical(@RequestBody ChemicalRequestTemplate chemical) {
+        if(chemical.getSmiles() == null && chemical.getCas() == null) {
+            throw new IllegalArgumentException("At least one of CAS or SMILES values must have a value");
+        }
+        chemicalCreator.createChemical(chemical.getCas(), chemical.getSmiles());
+    }
+
+    @GetMapping("/chemical")
+    public List<Chemical> getAllChemicals(@RequestParam(value="0") int page, @RequestParam(value="50") int size) {
+        return chemicalRepository.findAll(PageRequest.of(page,size)).toList();
+    }
+
+    @GetMapping("/logicrules")
+    public List<LogicRule> getLogicRules(@RequestParam(value="1",required = false) Long modelId,
+                                         @RequestParam(value="0") int page,
+                                         @RequestParam(value="20") int size){
+        if(modelId == null) {
+            return logicRuleRepository.findAll(PageRequest.of(page, size)).toList();
+        }
+        return logicRuleRepository.findByModelContaining(modelId, PageRequest.of(page, size)).toList();
+    }
 
 }

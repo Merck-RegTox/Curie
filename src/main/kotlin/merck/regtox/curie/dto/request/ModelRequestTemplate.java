@@ -1,12 +1,12 @@
 package merck.regtox.curie.dto.request;
 
-public class ModelRequest {
+public class ModelRequestTemplate {
     Long id;
     String name;
     Long endpointId;
     Long softwareId;
 
-    public ModelRequest() {
+    public ModelRequestTemplate() {
     }
 
     public Long getId() {

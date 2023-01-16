@@ -1,6 +1,7 @@
 package merck.regtox.curie.dto;
 
 import jakarta.persistence.*;
+import merck.regtox.curie.dto.request.ChemicalRequestTemplate;
 
 @Entity
 @Table(name="chemical")
@@ -15,6 +16,11 @@ public class Chemical {
     private String smile;
 
     public Chemical() {
+    }
+
+    public Chemical(ChemicalRequestTemplate crt) {
+        this.cas = crt.getCas();
+        this.smile = crt.getSmiles();
     }
 
     public Long getId() {
