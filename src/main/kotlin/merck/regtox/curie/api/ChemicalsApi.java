@@ -31,34 +31,6 @@ public class ChemicalsApi {
     ChemicalRepository chemicalRepository;
 
 
-    @PostMapping(path="/model/add", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
-    public void createNewModel(@RequestBody ModelRequestTemplate model) {
-        model.setName(model
-                .getName()
-                .trim()
-                .toLowerCase()
-        );
-        Optional<Software> software = softwareRepository.findById(model.getSoftwareId());
-        Optional<Endpoint> endpoint = endpointRepository.findById(model.getEndpointId());
-
-        if(endpoint.isEmpty()) {
-            throw new EntityNotFoundException("Endpoint with id: "+model.getSoftwareId()+" not found");
-        }
-        if(software.isEmpty()) {
-            throw new EntityNotFoundException("Software with id: "+model.getEndpointId()+" not found");
-        }
-
-        if(modelRepository.existsByNameAndEndpointIdAndSoftwareId(model.getName(), model.getEndpointId(), model.getSoftwareId()))
-        {
-            throw new EntityExistsException("Entity with given parameters already exists");
-        }
-        Model dbModel = new Model();
-        dbModel.setEndpoint(endpoint.get());
-        dbModel.setSoftware(software.get());
-        dbModel.setName(model.getName());
-        modelRepository.save(dbModel);
-    }
-
     @GetMapping("/software/remove/{id}")
     public void deleteSoftware(@PathParam("id") Long id) {
         if(softwareRepository.existsById(id)) {

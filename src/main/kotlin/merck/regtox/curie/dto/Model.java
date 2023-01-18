@@ -22,6 +22,12 @@ public class Model {
     public Model() {
     }
 
+    public Model(String name, Endpoint endpoint, Software software) {
+        this.name = name;
+        this.endpoint = endpoint;
+        this.software = software;
+    }
+
     public Long getId() {
         return id;
     }

@@ -56,9 +56,9 @@ class LogicRuleApi(
     }
 
     @DeleteMapping(path=["remove"], consumes=[MediaType.APPLICATION_JSON_VALUE], produces=[MediaType.APPLICATION_JSON_VALUE])
-    fun deleteLogicRules(@PathVariable("id") id: Iterable<Long>): Iterable<LogicRule> {
+    fun deleteLogicRules(@RequestBody id: LogicRuleDeletionObj): Iterable<LogicRule> {
         val deleted: MutableList<LogicRule> = mutableListOf()
-        id.forEach {
+        id.ids.forEach {
             val rule = logicRuleRepository.findById(it)
             if (!rule.isEmpty) {
                 logicRuleRepository.delete(rule.get())
@@ -74,3 +74,5 @@ data class LogicRuleObj(val raw: String,
                         val modelId: Long,
                         val isReliability: Boolean
                         )
+
+data class LogicRuleDeletionObj(val ids: List<Long>)

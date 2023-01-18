@@ -1,20 +1,14 @@
 package merck.regtox.curie.api
 
 import jakarta.persistence.EntityNotFoundException
-import merck.regtox.curie.dto.Endpoint
-import merck.regtox.curie.dto.LogicRule
 import merck.regtox.curie.dto.Model
 import merck.regtox.curie.dto.repository.EndpointRepository
 import merck.regtox.curie.dto.repository.ModelRepository
 import merck.regtox.curie.dto.repository.SoftwareRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.MediaType
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping(path = ["api/v1/model"])
@@ -48,18 +42,38 @@ class ModelApi(@Autowired val endpointRepository: EndpointRepository,
         return modelRepository.findModelBySoftwareContaining(software.get())
     }
 
-
     @DeleteMapping
     fun deleteModelsById(): List<Model> {
-
+        throw NotImplementedError(deleteModelsById().toString())
     }
 
-    @PostMapping
-    fun addModels(): List<Model> {
-
+    @PostMapping(
+        path = ["/add"],
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun addModels(@RequestBody models: Iterable<ModelObj>): List<Model> {
+        val newModels: MutableList<Model> = mutableListOf()
+        models.forEach {
+            val endpoint = endpointRepository.findById(it.endpointId)
+            val software = softwareRepository.findById(it.softwareId)
+            if (endpoint.isEmpty) {
+                throw EntityNotFoundException("Endpoint with id: ${it.endpointId} does not exist")
+            }
+            if (software.isEmpty) {
+                throw EntityNotFoundException("Software with id: ${it.softwareId} does not exist")
+            }
+            val newModel = Model(it.name.trim().lowercase(), endpoint.get(), software.get())
+            modelRepository.save(newModel)
+            newModels.add(newModel)
+        }
+        return newModels
     }
 
-    data class ModelObj()
+    data class ModelObj(
+        val endpointId: Long,
+        val softwareId: Long,
+        val name: String)
 
     /*TODO:
         1. adding new models
