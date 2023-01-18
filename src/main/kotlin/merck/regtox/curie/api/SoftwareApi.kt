@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*
 class SoftwareApi(@Autowired val softwareRepository: SoftwareRepository) {
 
     @GetMapping("")
-    fun getAllEndpoints(@RequestParam(value = "0") page: Int, @RequestParam(value = "50") pageSize: Int): Iterable<Software> {
+    fun getAllEndpoints(@RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): Iterable<Software> {
         return softwareRepository.findAll(PageRequest.of(page, pageSize)).toList()
     }
 

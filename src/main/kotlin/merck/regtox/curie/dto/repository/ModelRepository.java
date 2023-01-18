@@ -11,5 +11,7 @@ import java.util.List;
 
 public interface ModelRepository extends JpaRepository<Model, Long> {
     Boolean existsByNameAndEndpointIdAndSoftwareId(String name, Long endpointId, Long softwareId);
-    List<Model> findByName(String name);
+    List<Model> findModelByEndpointContaining(Endpoint endpoint);
+    List<Model> findModelBySoftwareContaining(Software software);
+
 }

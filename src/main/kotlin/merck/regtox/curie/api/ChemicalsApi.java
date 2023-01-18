@@ -29,30 +29,6 @@ public class ChemicalsApi {
     ChemicalCreator chemicalCreator;
     @Autowired
     ChemicalRepository chemicalRepository;
-    @Autowired
-    LogicRuleRepository logicRuleRepository;
-
-
-    @GetMapping("/model")
-    public List<Model> getAllModels(@RequestParam(value="0") int page,
-                                    @RequestParam(value="50") int size){
-        return modelRepository.findAll(PageRequest.of(page, size)).toList();
-    }
-
-    @GetMapping("/model/{id}")
-    public Model getModelById(@PathParam("id") Long id){
-        return modelRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Model with id: "+id+" doesnt exist"));
-    }
-
-    @GetMapping("/model/name/{name}")
-    public List<Model> getModelByName(@PathParam("name") String name){
-        List<Model> models =  modelRepository.findByName(name);
-        if (models.isEmpty()) {
-            throw new EntityNotFoundException("Model with name: "+name+" doesn't exist");
-        }
-        return models;
-    }
 
 
     @PostMapping(path="/model/add", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
@@ -123,14 +99,6 @@ public class ChemicalsApi {
         return chemicalRepository.findAll(PageRequest.of(page,size)).toList();
     }
 
-    @GetMapping("/logicrules")
-    public List<LogicRule> getLogicRules(@RequestParam(value="1",required = false) Long modelId,
-                                         @RequestParam(value="0") int page,
-                                         @RequestParam(value="20") int size){
-        if(modelId == null) {
-            return logicRuleRepository.findAll(PageRequest.of(page, size)).toList();
-        }
-        return logicRuleRepository.findByModelContaining(modelId, PageRequest.of(page, size)).toList();
-    }
+
 
 }

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 class EndpointApi(@Autowired val endpointRepository: EndpointRepository) {
 
     @GetMapping("")
-    fun getAllEndpoints(@RequestParam(value = "0") page: Int, @RequestParam(value = "50") pageSize: Int): Iterable<Endpoint> {
+    fun getAllEndpoints(@RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): Iterable<Endpoint> {
         return endpointRepository.findAll(PageRequest.of(page, pageSize)).toList()
     }
 
