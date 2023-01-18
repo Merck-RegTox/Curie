@@ -32,23 +32,10 @@ public class ChemicalsApi {
     @Autowired
     LogicRuleRepository logicRuleRepository;
 
-    @GetMapping("/software")
-    public List<Software> getAllSoftware(@RequestParam(value="0") int page,
-                                         @RequestParam(value="50") int size){
-        return softwareRepository.findAll(PageRequest.of(page, size)).toList();
-    }
-
-    @GetMapping("/software/{id}")
-    public Software getSoftwareById(@PathParam("id") Long id){
-        return softwareRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Software with id: "+id+" doesnt exist"));
-    }
 
     @GetMapping("/model")
     public List<Model> getAllModels(@RequestParam(value="0") int page,
-                                    @RequestParam(value="50") int size,
-                                    @RequestParam(required = false) Long endpointId,
-                                    @RequestParam(required = false) Long softwareId){
+                                    @RequestParam(value="50") int size){
         return modelRepository.findAll(PageRequest.of(page, size)).toList();
     }
 
@@ -58,44 +45,15 @@ public class ChemicalsApi {
                 .orElseThrow(() -> new EntityNotFoundException("Model with id: "+id+" doesnt exist"));
     }
 
-
-    @GetMapping("/endpoint")
-    public List<Endpoint> getAllEndpoints(@RequestParam(value="0") int page,
-                                          @RequestParam(value="50") int size){
-        return endpointRepository.findAll(PageRequest.of(page, size)).toList();
-    }
-
-    @GetMapping("/endpoint/{id}")
-    public Endpoint getAllEndpoints(@PathParam("id") Long id){
-        return endpointRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Endpoint with id: "+id+" doesnt exist"));
-    }
-
-    @PostMapping(path="/software/add", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
-    public void createNewSoftware(@RequestBody Software software) {
-        software.setName(software
-                .getName()
-                .trim()
-                .toLowerCase()
-        );
-        if(softwareRepository.existsByName(software.getName())) {
-            throw new EntityExistsException("Software with name: '"+software.getName()+"' already exists");
+    @GetMapping("/model/name/{name}")
+    public List<Model> getModelByName(@PathParam("name") String name){
+        List<Model> models =  modelRepository.findByName(name);
+        if (models.isEmpty()) {
+            throw new EntityNotFoundException("Model with name: "+name+" doesn't exist");
         }
-        softwareRepository.save(software);
+        return models;
     }
 
-    @PostMapping(path="/endpoint/add", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
-    public void createNewEndpoint(@RequestBody Endpoint endpoint) {
-        endpoint.setName(endpoint
-                .getName()
-                .trim()
-                .toLowerCase()
-        );
-        if(endpointRepository.existsByName(endpoint.getName())) {
-            throw new EntityExistsException("Endpoint with name: '"+endpoint.getName()+"' already exists");
-        }
-        endpointRepository.save(endpoint);
-    }
 
     @PostMapping(path="/model/add", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public void createNewModel(@RequestBody ModelRequestTemplate model) {

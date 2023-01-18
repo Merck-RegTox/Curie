@@ -16,6 +16,10 @@ public class Software {
     public Software() {
     }
 
+    public Software(String name) {
+        this.name = name;
+    }
+
     public Long getId() {
         return id;
     }

@@ -9,4 +9,6 @@ import java.awt.print.Pageable;
 
 public interface LogicRuleRepository extends JpaRepository<LogicRule, Long> {
     Page<LogicRule> findByModelContaining(Long modelId, PageRequest pageable);
+
+    Boolean existsByRawAndMappedAndIsReliability(String raw, String mapped, Boolean IsReliability);
 }

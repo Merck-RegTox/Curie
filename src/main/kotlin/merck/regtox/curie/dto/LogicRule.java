@@ -12,15 +12,27 @@ public class LogicRule
     @ManyToOne
     @JoinColumn(name = "model_id")
     private Model model;
-    @Column(name="prediction_raw")
-    private String predictionRaw;
-    @Column(name="prediction_mapped")
-    private String predictionMapped;
+    @Column(name="raw")
+    private String raw;
+    @Column(name="mapped")
+    private String mapped;
 
-    public LogicRule(Model model, String predictionRaw, String predictionMapped) {
+    @Column(name = "is_reliability_mapping")
+    private Boolean isReliability;
+
+    public LogicRule(Model model, String raw, String mapped, Boolean isReliability) {
         this.model = model;
-        this.predictionRaw = predictionRaw;
-        this.predictionMapped = predictionMapped;
+        this.raw = raw;
+        this.mapped = mapped;
+        this.isReliability = isReliability;
+    }
+
+    public Boolean getReliability() {
+        return isReliability;
+    }
+
+    public void setReliability(Boolean reliability) {
+        isReliability = reliability;
     }
 
     public LogicRule() {
@@ -34,20 +46,20 @@ public class LogicRule
         this.id = id;
     }
 
-    public String getPredictionRaw() {
-        return predictionRaw;
+    public String getraw() {
+        return raw;
     }
 
-    public void setPredictionRaw(String predictionRaw) {
-        this.predictionRaw = predictionRaw;
+    public void setraw(String raw) {
+        this.raw = raw;
     }
 
-    public String getPredictionMapped() {
-        return predictionMapped;
+    public String getmapped() {
+        return mapped;
     }
 
-    public void setPredictionMapped(String predictionMapped) {
-        this.predictionMapped = predictionMapped;
+    public void setmapped(String mapped) {
+        this.mapped = mapped;
     }
 
     public Model getModel() {
