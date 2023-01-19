@@ -7,14 +7,12 @@ import merck.regtox.curie.buissnesLogic.ChemicalCreator;
 import merck.regtox.curie.dto.*;
 import merck.regtox.curie.dto.repository.*;
 import merck.regtox.curie.dto.request.ChemicalRequestTemplate;
-import merck.regtox.curie.dto.request.ModelRequestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(path = "api/v1")
@@ -70,7 +68,6 @@ public class ChemicalsApi {
     public List<Chemical> getAllChemicals(@RequestParam(value="0") int page, @RequestParam(value="50") int size) {
         return chemicalRepository.findAll(PageRequest.of(page,size)).toList();
     }
-
 
 
 }

@@ -23,7 +23,7 @@ class SoftwareApi(@Autowired val softwareRepository: SoftwareRepository) {
         if (softwareRepository.existsByName(newName)) {
             throw EntityExistsException("Software with name: $name already exits.")
         }
-        return softwareRepository.save(Software(name))
+        return softwareRepository.save(Software(newName))
     }
 
     @DeleteMapping("remove/{id}")
