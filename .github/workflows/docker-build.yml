@@ -23,4 +23,4 @@ jobs:
     
     - uses: actions/checkout@v3
     - name: push docker image
-      run: docker push $hub_username/curie:latest
+      run: docker push ${{ secrets.username }}/curie:latest
