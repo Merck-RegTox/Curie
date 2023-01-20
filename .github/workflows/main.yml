@@ -1,0 +1,26 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: 
+        docker build . --file Dockerfile --tag cutibo29/curie:latest
+    
+    - uses: actions/checkout@v3
+    - name: login to dockerhub
+      run: docker login -u $hub_username -p $hub_password
+    
+    - uses: actions/checkout@v3
+    - name: push docker image
+      run: docker push $hub_username/curie:latest
