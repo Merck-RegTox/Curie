@@ -19,7 +19,7 @@ jobs:
     
     - uses: actions/checkout@v3
     - name: login to dockerhub
-      run: docker login -u $hub_username -p $hub_password
+      run: docker login -u cutibo29 -p $hub_password
     
     - uses: actions/checkout@v3
     - name: push docker image
