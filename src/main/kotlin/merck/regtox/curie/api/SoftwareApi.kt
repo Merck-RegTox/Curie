@@ -1,6 +1,7 @@
 package merck.regtox.curie.api
 
 import jakarta.persistence.EntityExistsException
+import jakarta.persistence.EntityNotFoundException
 import merck.regtox.curie.dto.Endpoint
 import merck.regtox.curie.dto.Software
 import merck.regtox.curie.dto.repository.SoftwareRepository
@@ -13,12 +14,13 @@ import org.springframework.web.bind.annotation.*
 class SoftwareApi(@Autowired val softwareRepository: SoftwareRepository) {
 
     @GetMapping("")
-    fun getAllEndpoints(@RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): Iterable<Software> {
+    fun getAllSoftware(@RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): Iterable<Software> {
         return softwareRepository.findAll(PageRequest.of(page, pageSize)).toList()
     }
 
+
     @PutMapping("add/{name}")
-    fun createEndpoint(@PathVariable("name") name: String): Software {
+    fun createSoftware(@PathVariable("name") name: String): Software {
         val newName = name.trim().lowercase()
         if (softwareRepository.existsByName(newName)) {
             throw EntityExistsException("Software with name: $name already exits.")
@@ -27,8 +29,17 @@ class SoftwareApi(@Autowired val softwareRepository: SoftwareRepository) {
     }
 
     @DeleteMapping("remove/{id}")
-    fun deleteEndpoint(@PathVariable("id") id: Long) {
+    fun deleteSoftware(@PathVariable("id") id: Long) {
         softwareRepository.deleteById(id)
+    }
+
+    @GetMapping("get/{name}")
+    fun getSoftwareByName(@PathVariable("name")  name: String, @RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): Software {
+        val software = softwareRepository.findByName(name.trim().lowercase())
+        if (software.isEmpty) {
+            throw EntityNotFoundException("Software with name $name does not exist")
+        }
+        return software.get()
     }
 
 }

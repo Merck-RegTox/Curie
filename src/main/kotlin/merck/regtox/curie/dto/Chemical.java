@@ -8,7 +8,7 @@ import merck.regtox.curie.dto.request.ChemicalRequestTemplate;
 public class Chemical {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name="cas")
     private String cas;

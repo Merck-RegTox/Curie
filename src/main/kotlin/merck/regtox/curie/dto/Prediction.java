@@ -6,11 +6,11 @@ import jakarta.persistence.*;
 @Table
 public class Prediction {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
     private Long id;
-    @ManyToOne
-    @JoinColumn(name = "chemical_id")
-    private Chemical chemical;
+    @Column(name = "chemical_id")
+    private Long cid;
 
     @Column(name="prediction_raw")
     private String prediction_raw;
@@ -23,36 +23,19 @@ public class Prediction {
 
     @Column(name="reliability")
     private String reliability;
-    @ManyToOne
-    @JoinColumn(name = "model_id")
-    private Model model;
+    @Column(name = "model_id")
+    private Long mid;
 
     public Prediction() {
     }
 
-    public Prediction(Chemical chemical, String prediction_raw, Boolean prediction, String reliability_raw, String reliability, Model model) {
-        this.chemical = chemical;
+    public Prediction(Long cid, String prediction_raw, Boolean prediction, String reliability_raw, String reliability, Long model) {
+        this.cid = cid;
         this.prediction_raw = prediction_raw;
         this.prediction = prediction;
         this.reliability_raw = reliability_raw;
         this.reliability = reliability;
-        this.model = model;
-    }
-
-    public Model getModel() {
-        return model;
-    }
-
-    public void setModel(Model model) {
-        this.model = model;
-    }
-
-    public Chemical getChemical() {
-        return chemical;
-    }
-
-    public void setChemical(Chemical chemical) {
-        this.chemical = chemical;
+        this.mid = mid;
     }
 
     public Long getId() {
@@ -61,6 +44,14 @@ public class Prediction {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getCid() {
+        return cid;
+    }
+
+    public void setCid(Long cid) {
+        this.cid = cid;
     }
 
     public String getPrediction_raw() {
@@ -93,5 +84,13 @@ public class Prediction {
 
     public void setReliability(String reliability) {
         this.reliability = reliability;
+    }
+
+    public Long getMid() {
+        return mid;
+    }
+
+    public void setMid(Long mid) {
+        this.mid = mid;
     }
 }

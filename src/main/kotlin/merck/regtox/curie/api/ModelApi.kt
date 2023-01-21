@@ -2,6 +2,7 @@ package merck.regtox.curie.api
 
 import jakarta.persistence.EntityNotFoundException
 import merck.regtox.curie.dto.Model
+import merck.regtox.curie.dto.Software
 import merck.regtox.curie.dto.repository.EndpointRepository
 import merck.regtox.curie.dto.repository.ModelRepository
 import merck.regtox.curie.dto.repository.SoftwareRepository
@@ -28,7 +29,7 @@ class ModelApi(@Autowired val endpointRepository: EndpointRepository,
         if (endpoint.isEmpty) {
            throw EntityNotFoundException("Endpoint with id: $endpoint does not exist")
         }
-        return modelRepository.findModelByEndpointContaining(endpoint.get())
+        return modelRepository.findModelByEid(endpoint.get().id)
     }
 
     @GetMapping("software")
@@ -39,7 +40,8 @@ class ModelApi(@Autowired val endpointRepository: EndpointRepository,
         if (software.isEmpty) {
             throw EntityNotFoundException("Endpoint with id: $softwareId does not exist")
         }
-        return modelRepository.findModelBySoftwareContaining(software.get())
+        val foundSoftware = software.get()
+        return modelRepository.findModelBySid(foundSoftware.id)
     }
 
     @DeleteMapping(
@@ -74,11 +76,20 @@ class ModelApi(@Autowired val endpointRepository: EndpointRepository,
             if (software.isEmpty) {
                 throw EntityNotFoundException("Software with id: ${it.softwareId} does not exist")
             }
-            val newModel = Model(it.name.trim().lowercase(), endpoint.get(), software.get())
+            val newModel = Model(it.name.trim().lowercase(), endpoint.get().id, software.get().id)
             modelRepository.save(newModel)
             newModels.add(newModel)
         }
         return newModels
+    }
+
+    @GetMapping("get/{name}")
+    fun getModelByName(@PathVariable("name")  name: String, @RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): Model {
+        val model = modelRepository.findByName(name.trim().lowercase())
+        if (model.isEmpty) {
+            throw EntityNotFoundException("Model with name $name does not exist")
+        }
+        return model.get()
     }
 
     data class ModelsToCreate(
@@ -95,10 +106,4 @@ class ModelApi(@Autowired val endpointRepository: EndpointRepository,
             val modelIds: List<Long>
     )
 
-    /*TODO:
-        1. adding new models
-        2. deleting new models
-        3. test models api
-        4. test logic rules api
-    */
 }

@@ -7,25 +7,24 @@ import jakarta.persistence.*;
 public class Model {
     @Id
     @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name="name", nullable = false)
     private String name;
-    @JoinColumn(name="eid", nullable = false)
-    @ManyToOne(targetEntity = Endpoint.class, cascade = CascadeType.ALL)
-    private Endpoint endpoint;
 
-    @JoinColumn(name="sid", nullable = false)
-    @ManyToOne(targetEntity = Software.class, cascade = CascadeType.ALL)
-    private Software software;
+    @Column(name="eid", nullable = false)
+    private Long eid;
+
+    @Column(name="sid", nullable = false)
+    private Long sid;
 
     public Model() {
     }
 
-    public Model(String name, Endpoint endpoint, Software software) {
+    public Model(String name, Long eid, Long sid) {
         this.name = name;
-        this.endpoint = endpoint;
-        this.software = software;
+        this.eid = eid;
+        this.sid = sid;
     }
 
     public Long getId() {
@@ -44,19 +43,19 @@ public class Model {
         this.name = name;
     }
 
-    public Endpoint getEndpoint() {
-        return endpoint;
+    public Long getEid() {
+        return eid;
     }
 
-    public void setEndpoint(Endpoint endpoint) {
-        this.endpoint = endpoint;
+    public void setEid(Long eid) {
+        this.eid = eid;
     }
 
-    public Software getSoftware() {
-        return software;
+    public Long getSid() {
+        return sid;
     }
 
-    public void setSoftware(Software software) {
-        this.software = software;
+    public void setSid(Long sid) {
+        this.sid = sid;
     }
 }

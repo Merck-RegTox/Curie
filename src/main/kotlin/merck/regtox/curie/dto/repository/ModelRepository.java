@@ -8,10 +8,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ModelRepository extends JpaRepository<Model, Long> {
-    Boolean existsByNameAndEndpointIdAndSoftwareId(String name, Long endpointId, Long softwareId);
-    List<Model> findModelByEndpointContaining(Endpoint endpoint);
-    List<Model> findModelBySoftwareContaining(Software software);
-
+    Boolean existsByNameAndEidAndSid(String name, Long endpointId, Long softwareId);
+    List<Model> findModelByEid(Long eid);
+    List<Model> findModelBySid(Long sid);
+    Optional<Model> findByName(String name);
 }
