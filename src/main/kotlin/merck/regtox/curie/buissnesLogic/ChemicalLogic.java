@@ -48,7 +48,7 @@ public class ChemicalLogic {
         return new Chemical();
     }
 
-    public Long getChemicalIdOrCreateNew(String cas, String smile) {
+    public Long getChemicalId(String cas, String smile) {
         if (cas == null && smile == null) {
             return null;
         }
