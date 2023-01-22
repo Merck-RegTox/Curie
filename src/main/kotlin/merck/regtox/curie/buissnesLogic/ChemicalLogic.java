@@ -1,18 +1,21 @@
 package merck.regtox.curie.buissnesLogic;
 
-import jakarta.persistence.EntityExistsException;
 import merck.regtox.curie.dto.Chemical;
 import merck.regtox.curie.dto.repository.ChemicalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Optional;
+
 @Component
-public class ChemicalCreator {
+public class ChemicalLogic {
 
     @Autowired
     ChemicalRepository chemicalRepository;
 
-    public ChemicalCreator() {
+    public ChemicalLogic() {
     }
 
     public Chemical createChemical(String cas, String smile) {
@@ -44,4 +47,27 @@ public class ChemicalCreator {
         }
         return new Chemical();
     }
+
+    public Long getChemicalIdOrCreateNew(String cas, String smile) {
+        if (cas == null && smile == null) {
+            return null;
+        }
+        if (cas != null) {
+            cas = cas.trim().toLowerCase();
+        }
+        if (smile != null) {
+            smile = smile.trim().toLowerCase();
+        }
+        Chemical chemicalExample = Chemical.builder()
+                .cas(cas)
+                .smile(smile)
+                .build();
+        List<Chemical> chemicals = chemicalRepository.findAll(Example.of(chemicalExample));
+        if (chemicals.isEmpty()) {
+            return -1L;
+        }
+
+        return chemicals.get(0).getId();
+    }
+
 }

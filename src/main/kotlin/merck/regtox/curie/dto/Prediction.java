@@ -1,6 +1,10 @@
 package merck.regtox.curie.dto;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
 
 @Entity
 @Table

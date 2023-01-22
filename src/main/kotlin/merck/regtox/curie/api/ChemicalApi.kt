@@ -1,18 +1,17 @@
 package merck.regtox.curie.api
 
-import jakarta.persistence.EntityNotFoundException
-import merck.regtox.curie.buissnesLogic.ChemicalCreator
+import merck.regtox.curie.buissnesLogic.ChemicalLogic
 import merck.regtox.curie.dto.Chemical
 import merck.regtox.curie.dto.repository.ChemicalRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.*
-import kotlin.jvm.optionals.toList
 
 @RestController
 @RequestMapping(path = ["api/v1/chemical"])
 class ChemicalApi(@Autowired val chemicalRepository: ChemicalRepository,
-                  @Autowired val chemicalCreator: ChemicalCreator) {
+                  @Autowired val chemicalLogic: ChemicalLogic
+) {
     @GetMapping
     fun getChemicals(@RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): List<Chemical> {
         return chemicalRepository.findAll(PageRequest.of(page, pageSize)).toList()
@@ -50,7 +49,7 @@ class ChemicalApi(@Autowired val chemicalRepository: ChemicalRepository,
     fun addChemicals(@RequestBody chemicals: ChemicalsObj): List<Chemical> {
         val createdChemicals = mutableListOf<Chemical>()
         chemicals.chems.forEach {
-            val newChemical = chemicalCreator.createChemical(it.cas, it.smile)
+            val newChemical = chemicalLogic.createChemical(it.cas, it.smile)
             if (newChemical.id != null)
                 createdChemicals.add(newChemical)
         }

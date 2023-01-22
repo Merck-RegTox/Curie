@@ -1,8 +1,11 @@
 package merck.regtox.curie.dto;
 
 import jakarta.persistence.*;
-import merck.regtox.curie.dto.request.ChemicalRequestTemplate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
+@Builder
+@AllArgsConstructor
 @Entity
 @Table(name="chemical")
 public class Chemical {
@@ -18,10 +21,6 @@ public class Chemical {
     public Chemical() {
     }
 
-    public Chemical(ChemicalRequestTemplate crt) {
-        this.cas = crt.getCas();
-        this.smile = crt.getSmiles();
-    }
 
     public Long getId() {
         return id;
