@@ -20,7 +20,7 @@ public class Prediction {
     private String prediction_raw;
 
     @Column(name="prediction")
-    private Boolean prediction;
+    private String prediction;
 
     @Column(name="reliability_raw")
     private String reliability_raw;
@@ -33,7 +33,7 @@ public class Prediction {
     public Prediction() {
     }
 
-    public Prediction(Long cid, String prediction_raw, Boolean prediction, String reliability_raw, String reliability, Long model) {
+    public Prediction(Long cid, String prediction_raw, String prediction, String reliability_raw, String reliability, Long model) {
         this.cid = cid;
         this.prediction_raw = prediction_raw;
         this.prediction = prediction;
@@ -66,11 +66,11 @@ public class Prediction {
         this.prediction_raw = prediction_raw;
     }
 
-    public Boolean getPrediction() {
+    public String getPrediction() {
         return prediction;
     }
 
-    public void setPrediction(Boolean prediction) {
+    public void setPrediction(String prediction) {
         this.prediction = prediction;
     }
 

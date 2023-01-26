@@ -6,47 +6,89 @@ import merck.regtox.curie.dto.Endpoint
 import merck.regtox.curie.dto.Software
 import merck.regtox.curie.dto.repository.EndpointRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Example
+import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.domain.PageRequest
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.data.domain.Sort
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
+import java.lang.Exception
 
 @RestController
+@CrossOrigin(origins = ["http://localhost:3000"], exposedHeaders = ["x-total-count"])
 @RequestMapping(path = ["api/v1/endpoint"])
 class EndpointApi(@Autowired val endpointRepository: EndpointRepository) {
 
+    val repository = endpointRepository
+
     @GetMapping("")
-    fun getAllEndpoints(@RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): Iterable<Endpoint> {
-        return endpointRepository.findAll(PageRequest.of(page, pageSize)).toList()
-    }
-
-    @PutMapping("add/{name}")
-    fun createEndpoint(@PathVariable("name") name: String): Endpoint {
-        val newName = name.trim().lowercase()
-        if (endpointRepository.existsByName(newName)) {
-           throw EntityExistsException("Endpoint with name: $name already exits.")
+    fun getAllEndpoints(
+        @RequestParam(value = "page", required = false, defaultValue = "0") page: Int,
+        @RequestParam(value = "pageSize", required = false, defaultValue = "100") pageSize: Int,
+        @RequestParam(value = "sort", required = false, defaultValue = "id") sort: String,
+        @RequestParam(value = "order", required = false, defaultValue = "ASC") order: Sort.Direction,
+        @ModelAttribute filter: Endpoint,
+        @RequestParam(value = "id", required = false) ids: List<Long>?
+    ): ResponseEntity<List<Endpoint>> {
+        if(ids == null) {
+            val example = Example.of(
+                filter,
+                ExampleMatcher.matching().withIgnoreNullValues().withIgnoreCase()
+                    .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+            )
+            val sort = Sort.by(order, sort)
+            val paging = PageRequest.of(page, pageSize, sort)
+            val data = repository.findAll(example, paging)
+            return ResponseEntity.ok()
+                .header("Access-Control-Exposed-Headers", "x-total-count")
+                .header("x-total-count", data.totalElements.toString())
+                .body(data.toList())
         }
-        return endpointRepository.save(Endpoint(name))
+        val data = repository.findAllById(ids)
+        return ResponseEntity.ok()
+            .header("Access-Control-Exposed-Headers", "x-total-count")
+            .header("x-total-count", data.size.toString())
+            .body(data.toList())
     }
 
-    @DeleteMapping("remove/{id}")
-    fun deleteEndpoint(@PathVariable("id") id: Long) {
-        endpointRepository.deleteById(id)
-    }
-
-    @GetMapping("get/{name}")
-    fun getEndpointByName(@PathVariable("name")  name: String, @RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): Endpoint {
-        val endpoint = endpointRepository.findByName(name.trim().lowercase())
-        if (endpoint.isEmpty) {
-            throw EntityNotFoundException("Endpoint with name $name does not exist")
+    @PostMapping()
+    fun createEndpoint(@RequestBody objToCreate: EndpointDto): Endpoint{
+        if (repository.existsByName(objToCreate.name)) {
+            throw EntityExistsException("Endpoint with name ${objToCreate.name} already exists")
         }
-        return endpoint.get()
+        val newEndpoint = Endpoint().apply {
+            name = objToCreate.name
+        }
+        return repository.save(newEndpoint)
     }
 
+    @PutMapping()
+    fun updateEndpoint(@RequestParam(value="id") id: Long,
+                       @RequestBody obj: EndpointDto): Endpoint? {
+        val toUpdate = repository.findById(id)
+        if (toUpdate.isEmpty) {
+            return null
+        }
+        toUpdate.get().apply {
+            name=obj.name
+        }
+        repository.save(toUpdate.get())
+        return toUpdate.get()
+
+    }
+
+    @DeleteMapping()
+    fun deleteEndpoint(@RequestParam id: Long): Endpoint?{
+        val toDelete = repository.findById(id)
+        repository.deleteById(id)
+        return toDelete.get()
+    }
 }
+
+data class EndpointDto(val name: String)
+
+
+
+
+
 

@@ -1,5 +1,6 @@
 package merck.regtox.curie.api
 
+import jakarta.persistence.EntityExistsException
 import jakarta.persistence.EntityNotFoundException
 import merck.regtox.curie.dto.Model
 import merck.regtox.curie.dto.Software
@@ -7,103 +8,88 @@ import merck.regtox.curie.dto.repository.EndpointRepository
 import merck.regtox.curie.dto.repository.ModelRepository
 import merck.regtox.curie.dto.repository.SoftwareRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Example
+import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
+@CrossOrigin(origins = ["http://localhost:3000"], exposedHeaders = ["x-total-count"])
 @RequestMapping(path = ["api/v1/model"])
-class ModelApi(@Autowired val endpointRepository: EndpointRepository,
-               @Autowired val softwareRepository: SoftwareRepository,
-               @Autowired val modelRepository: ModelRepository) {
+class ModelApi(@Autowired val modelRepository: ModelRepository) {
 
-    @GetMapping
-    fun getModels(@RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): List<Model> {
-        return modelRepository.findAll(PageRequest.of(page, pageSize)).toList()
-    }
-    @GetMapping("endpoint")
-    fun getModelsByEndpoint(@RequestParam(value = "page") page: Int,
-                            @RequestParam(value = "pageSize") pageSize: Int,
-                            @RequestParam(value = "endpoint_Id") endpointId: Long): List<Model> {
-        val endpoint = endpointRepository.findById(endpointId)
-        if (endpoint.isEmpty) {
-           throw EntityNotFoundException("Endpoint with id: $endpoint does not exist")
+    val repository = modelRepository
+
+    @GetMapping("")
+    fun getAllModels(
+        @RequestParam(value = "page", required = false, defaultValue = "0") page: Int,
+        @RequestParam(value = "pageSize", required = false, defaultValue = "100") pageSize: Int,
+        @RequestParam(value = "sort", required = false, defaultValue = "id") sort: String,
+        @RequestParam(value = "order", required = false, defaultValue = "ASC") order: Sort.Direction,
+        @ModelAttribute filter: Model,
+        @RequestParam(value = "id", required = false) ids: List<Long>?
+    ): ResponseEntity<List<Model>> {
+        if(ids == null) {
+            val example = Example.of(
+                filter,
+                ExampleMatcher.matching().withIgnoreNullValues().withIgnoreCase()
+                    .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+            )
+            val sort = Sort.by(order, sort)
+            val paging = PageRequest.of(page, pageSize, sort)
+            val data = repository.findAll(example, paging)
+            return ResponseEntity.ok()
+                .header("Access-Control-Exposed-Headers", "x-total-count")
+                .header("x-total-count", data.totalElements.toString())
+                .body(data.toList())
         }
-        return modelRepository.findModelByEid(endpoint.get().id)
+        val data = repository.findAllById(ids)
+        return ResponseEntity.ok()
+            .header("Access-Control-Exposed-Headers", "x-total-count")
+            .header("x-total-count", data.size.toString())
+            .body(data.toList())
     }
 
-    @GetMapping("software")
-    fun getModelsBySoftware(@RequestParam(value = "page") page: Int,
-                            @RequestParam(value = "pageSize") pageSize: Int,
-                            @RequestParam(value = "software_Id") softwareId: Long): List<Model> {
-        val software = softwareRepository.findById(softwareId)
-        if (software.isEmpty) {
-            throw EntityNotFoundException("Endpoint with id: $softwareId does not exist")
+    @PostMapping()
+    fun createSoftware(@RequestBody objToCreate: ModelDto): Model {
+        if (repository.existsByNameAndEidAndSid(objToCreate.name, objToCreate.endpoint_id, objToCreate.software_id )) {
+            throw EntityExistsException("Model with name ${objToCreate.name} already exists")
         }
-        val foundSoftware = software.get()
-        return modelRepository.findModelBySid(foundSoftware.id)
-    }
-
-    @DeleteMapping(
-            path = ["/remove"],
-            consumes = [MediaType.APPLICATION_JSON_VALUE],
-            produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun deleteModelsById(@RequestBody  obj: ModelDeletionObj): List<Model> {
-        val deletedModels = mutableListOf<Model>()
-        obj.modelIds.forEach {
-            val model = modelRepository.findById(it)
-            if (!model.isEmpty) {
-                modelRepository.delete(model.get())
-                deletedModels.add(model.get())
-            }
+        val newModel = Model().apply {
+            name = objToCreate.name
         }
-        return deletedModels
+        return repository.save(newModel)
     }
 
-    @PostMapping(
-        path = ["/add"],
-        consumes = [MediaType.APPLICATION_JSON_VALUE],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
+    @PutMapping()
+    fun updateSoftware(
+        @RequestParam(value = "id") id: Long,
+        @RequestBody obj: SoftwareDto
+    ): Model? {
+        val toUpdate = repository.findById(id)
+        if (toUpdate.isEmpty) {
+            return null
+        }
+        toUpdate.get().apply {
+            name = obj.name
+        }
+        repository.save(toUpdate.get())
+        return toUpdate.get()
+
+    }
+
+    @DeleteMapping()
+    fun deleteSoftware(@RequestParam id: Long): Model? {
+        val toDelete = repository.findById(id)
+        repository.deleteById(id)
+        return toDelete.get()
+    }
+    data class ModelDto(
+        val name: String,
+        val endpoint_id: Long,
+        val software_id: Long
     )
-    fun addModels(@RequestBody models: ModelsToCreate): List<Model> {
-        val newModels: MutableList<Model> = mutableListOf()
-        models.modelsToCreate.forEach {
-            val endpoint = endpointRepository.findById(it.endpointId)
-            val software = softwareRepository.findById(it.softwareId)
-            if (endpoint.isEmpty) {
-                throw EntityNotFoundException("Endpoint with id: ${it.endpointId} does not exist")
-            }
-            if (software.isEmpty) {
-                throw EntityNotFoundException("Software with id: ${it.softwareId} does not exist")
-            }
-            val newModel = Model(it.name.trim().lowercase(), endpoint.get().id, software.get().id)
-            modelRepository.save(newModel)
-            newModels.add(newModel)
-        }
-        return newModels
-    }
-
-    @GetMapping("get/{name}")
-    fun getModelByName(@PathVariable("name")  name: String, @RequestParam(value = "page") page: Int, @RequestParam(value = "pageSize") pageSize: Int): Model {
-        val model = modelRepository.findByName(name.trim().lowercase())
-        if (model.isEmpty) {
-            throw EntityNotFoundException("Model with name $name does not exist")
-        }
-        return model.get()
-    }
-
-    data class ModelsToCreate(
-            val modelsToCreate: List<ModelObj>
-    )
-
-    data class ModelObj(
-        val endpointId: Long,
-        val softwareId: Long,
-        val name: String)
-
-
-    data class ModelDeletionObj(
-            val modelIds: List<Long>
-    )
-
 }
